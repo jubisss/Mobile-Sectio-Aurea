@@ -3,6 +3,7 @@ import 'package:sectio_aurea/models/nota.dart';
 import 'package:sectio_aurea/services/database_service.dart';
 import 'package:sectio_aurea/widgets/botao.dart';
 import 'package:sectio_aurea/widgets/campo_texto.dart';
+import 'package:sectio_aurea/screens/create/cornell_note_screen.dart';
 
 class AddNoteScreen extends StatefulWidget {
   final Map<String, dynamic> u;
@@ -181,6 +182,16 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
         ),
         centerTitle: true,
         actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => CornellNoteScreen(u: widget.u)),
+              );
+            },
+            icon: Icon(Icons.view_column, color: accentColor, size: 18),
+            label: Text("Usar Cornell", style: TextStyle(color: accentColor, fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 12)),
+          ),
           IconButton(
             icon: Icon(
               _isFavorite ? Icons.star : Icons.star_border,

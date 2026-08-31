@@ -24,13 +24,90 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   int _totalSecondsStudied = 0;
   int _completedStudyBlocks = 0;
 
+  late String _currentMateria;
+  final TextEditingController _temaController = TextEditingController();
+  List<Map<String, dynamic>> _userSubjects = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _currentMateria = widget.materia;
+    _loadUserSubjects();
+  }
+
+  Future<void> _loadUserSubjects() async {
+    int userId = widget.u["id_usuario"] ?? 1;
+    List<Map<String, dynamic>> subs = await DatabaseService().getMaterias(userId);
+    if (mounted) {
+      setState(() {
+        _userSubjects = subs;
+        if (_currentMateria.isEmpty && _userSubjects.isNotEmpty) {
+          _currentMateria = _userSubjects.first["nome"].toString();
+        }
+      });
+    }
+  }
+
+  void _showSelectMateriaModal() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text("Selecione a Matéria", style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("A matéria é obrigatória para iniciar o Pomodoro:", style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey)),
+              const SizedBox(height: 10),
+              DropdownButton<String>(
+                value: _currentMateria.isNotEmpty ? _currentMateria : (_userSubjects.isNotEmpty ? _userSubjects.first["nome"].toString() : null),
+                isExpanded: true,
+                hint: const Text("Selecione uma matéria"),
+                items: _userSubjects.map((s) {
+                  String name = s["nome"].toString();
+                  return DropdownMenuItem<String>(value: name, child: Text(name, style: const TextStyle(fontFamily: 'Poppins', fontSize: 13)));
+                }).toList(),
+                onChanged: (v) {
+                  if (v != null) {
+                    setModalState(() => _currentMateria = v);
+                    setState(() => _currentMateria = v);
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                if (_currentMateria.isNotEmpty) {
+                  Navigator.pop(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Selecione uma matéria para continuar!")));
+                }
+              },
+              child: const Text("Confirmar", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
+    _temaController.dispose();
     super.dispose();
   }
 
   void _toggleTimer() {
+    if (_currentMateria.isEmpty) {
+      _showSelectMateriaModal();
+      return;
+    }
     if (_isRunning) {
       _timer?.cancel();
       setState(() {
@@ -321,6 +398,57 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+
+              // Subject Dropdown & Optional Tema Field
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xff1e1e1e) : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Text("Matéria *: ", style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 12, color: textColor)),
+                        Expanded(
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _currentMateria.isNotEmpty ? _currentMateria : null,
+                              isExpanded: true,
+                              dropdownColor: isDark ? const Color(0xff1e1e1e) : Colors.white,
+                              hint: const Text("Selecione a matéria"),
+                              items: _userSubjects.map((s) {
+                                String name = s["nome"].toString();
+                                return DropdownMenuItem<String>(value: name, child: Text(name, style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: textColor)));
+                              }).toList(),
+                              onChanged: (v) {
+                                if (v != null) setState(() => _currentMateria = v);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _temaController,
+                      decoration: InputDecoration(
+                        hintText: "Tema do Estudo (opcional, ex: Capítulo 3)",
+                        hintStyle: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: subtextColor),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                        filled: true,
+                        fillColor: isDark ? const Color(0xff2a2a2a) : const Color(0xfff5f5f5),
+                      ),
+                      style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: textColor),
+                    ),
+                  ],
+                ),
+              ),
+
               const Spacer(),
 
               // Timer Display

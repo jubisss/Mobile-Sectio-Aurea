@@ -689,56 +689,7 @@ class _PerfilTabState extends State<PerfilTab> {
   }
 
   void _showStudyMethods() {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    String intelligence = widget.u["tipo_dom"] ?? "Lógico-matemática";
-    if (intelligence.isEmpty) {
-      intelligence = "Lógico-matemática";
-    }
-    String title = "Métodos para Inteligência: $intelligence";
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(
-          title,
-          style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        content: FutureBuilder<List<String>>(
-          future: DatabaseService().getMetodoEstudo(intelligence),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return SizedBox(
-                height: 100,
-                child: Center(
-                  child: CircularProgressIndicator(color: isDark ? Colors.tealAccent : Colors.black),
-                ),
-              );
-            }
-            if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Text(
-                "Não foi possível carregar os métodos de estudo no momento.",
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 13),
-              );
-            }
-            final methods = snapshot.data!;
-            final description = methods.map((m) => "• $m").join("\n\n");
-            return SingleChildScrollView(
-              child: Text(
-                description,
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, height: 1.5),
-              ),
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Fechar", style: TextStyle(color: isDark ? Colors.tealAccent : Colors.black, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
+    context.push('/metodos', extra: widget.u);
   }
 
   void _showStatistics() {
