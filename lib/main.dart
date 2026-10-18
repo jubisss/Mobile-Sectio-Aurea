@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:sectio_aurea/router.dart';
+import 'package:sectio_aurea/rotas.dart';
 
 class ThemeManager {
   static final ValueNotifier<ThemeMode> themeMode = ValueNotifier(ThemeMode.light);

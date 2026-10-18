@@ -127,8 +127,8 @@ class Nota {
         }
       }
 
-      // Regex fallback if JSON decode had any issue
-      if (!parsedIsCornell && raw.contains('cornell')) {
+      // Fallback if JSON decode didn't set isCornell
+      if (!parsedIsCornell && (raw.contains('cornell') || raw.contains('"cues"') || raw.contains('"summary"') || raw.contains('"notes"'))) {
         parsedIsCornell = true;
         RegExp cuesRegex = RegExp(r'"cues"\s*:\s*"([^"]*)"');
         RegExp notesRegex = RegExp(r'"notes"\s*:\s*"([^"]*)"');
